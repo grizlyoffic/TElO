@@ -46,9 +46,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      # ── 6.5 Install babel-preset-expo ──────────────────────────────────
+      - name: Install babel-preset-expo
+        run: pnpm add -D babel-preset-expo
+
       # ── 7. Expo Prebuild (regenerate android/ from app.json) ──────────
-      #    Runs every time to keep native files in sync with app.json.
-      #    --no-install skips npm install (already done above).
       - name: Expo Prebuild
         working-directory: artifacts/code-editor
         run: pnpm exec expo prebuild --platform android --no-install --clean
