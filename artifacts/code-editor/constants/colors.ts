@@ -1,0 +1,122 @@
+const vscodeDark = {
+  text: "#d4d4d4",
+  tint: "#0078d4",
+  background: "#1e1e1e",
+  foreground: "#d4d4d4",
+  card: "#252526",
+  cardForeground: "#d4d4d4",
+  primary: "#0078d4",
+  primaryForeground: "#ffffff",
+  secondary: "#252526",
+  secondaryForeground: "#d4d4d4",
+  muted: "#333333",
+  mutedForeground: "#858585",
+  accent: "#0078d4",
+  accentForeground: "#ffffff",
+  destructive: "#f44747",
+  destructiveForeground: "#ffffff",
+  border: "#454545",
+  input: "#3c3c3c",
+  // VS Code specific
+  sidebar: "#252526",
+  activityBar: "#333333",
+  titleBar: "#3c3c3c",
+  tab: "#2d2d2d",
+  activeTab: "#1e1e1e",
+  activeTabBorder: "#0078d4",
+  lineNumber: "#858585",
+  // Syntax colors
+  keyword: "#569cd6",
+  string: "#ce9178",
+  comment: "#6a9955",
+  number: "#b5cea8",
+  func: "#dcdcaa",
+  type: "#4ec9b0",
+  operator: "#d4d4d4",
+  selection: "#264f78",
+  // Terminal
+  terminalBg: "#1e1e1e",
+  terminalText: "#cccccc",
+  terminalPrompt: "#4ec9b0",
+  terminalError: "#f44747",
+  // Status
+  success: "#4ec9b0",
+  warning: "#dcdcaa",
+  error: "#f44747",
+  statusBar: "#0078d4",
+  statusBarText: "#ffffff",
+};
+
+const vscodeTransparent = {
+  ...vscodeDark,
+  background: "rgba(15,15,15,0.55)",
+  sidebar: "rgba(20,20,20,0.65)",
+  activityBar: "rgba(25,25,25,0.75)",
+  titleBar: "rgba(30,30,30,0.7)",
+  tab: "rgba(35,35,35,0.7)",
+  activeTab: "rgba(15,15,15,0.55)",
+  card: "rgba(30,30,30,0.65)",
+  terminalBg: "rgba(15,15,15,0.6)",
+};
+
+const vscodeLight = {
+  text: "#1e1e1e",
+  tint: "#0078d4",
+  background: "#ffffff",
+  foreground: "#1e1e1e",
+  card: "#f3f3f3",
+  cardForeground: "#1e1e1e",
+  primary: "#0078d4",
+  primaryForeground: "#ffffff",
+  secondary: "#f3f3f3",
+  secondaryForeground: "#1e1e1e",
+  muted: "#e8e8e8",
+  mutedForeground: "#6e6e6e",
+  accent: "#0078d4",
+  accentForeground: "#ffffff",
+  destructive: "#d32f2f",
+  destructiveForeground: "#ffffff",
+  border: "#c8c8c8",
+  input: "#e8e8e8",
+  sidebar: "#f3f3f3",
+  activityBar: "#2c2c2c",
+  titleBar: "#dddddd",
+  tab: "#ececec",
+  activeTab: "#ffffff",
+  activeTabBorder: "#0078d4",
+  lineNumber: "#999999",
+  keyword: "#0000ff",
+  string: "#a31515",
+  comment: "#008000",
+  number: "#098658",
+  func: "#795e26",
+  type: "#267f99",
+  operator: "#1e1e1e",
+  selection: "#add6ff",
+  terminalBg: "#1e1e1e",
+  terminalText: "#cccccc",
+  terminalPrompt: "#4ec9b0",
+  terminalError: "#f44747",
+  success: "#107c10",
+  warning: "#bf8803",
+  error: "#d32f2f",
+  statusBar: "#0078d4",
+  statusBarText: "#ffffff",
+};
+
+export type IDEColors = typeof vscodeDark;
+export type ThemeType = "dark" | "transparent" | "light";
+
+export const THEMES: Record<ThemeType, IDEColors> = {
+  dark: vscodeDark,
+  transparent: vscodeTransparent,
+  light: vscodeLight,
+};
+
+const colors = {
+  light: vscodeDark,
+  dark: vscodeDark,
+  radius: 4,
+};
+
+export default colors;

@@ -1,0 +1,130 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    name: Build APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── 2. pnpm ──────────────────────────────────────────────────────
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      # ── 3. Node.js 20 ────────────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # ── 4. Java 17 ───────────────────────────────────────────────────
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # ── 5. Android SDK ────────────────────────────────────────────────
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      # ── 6. Install pnpm dependencies ──────────────────────────────────
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # ── 7. Expo Prebuild (regenerate android/ from app.json) ──────────
+      #    Runs every time to keep native files in sync with app.json.
+      #    --no-install skips npm install (already done above).
+      - name: Expo Prebuild
+        working-directory: artifacts/code-editor
+        run: pnpm exec expo prebuild --platform android --no-install --clean
+
+      # ── 8. Write local.properties (SDK path for Gradle) ───────────────
+      - name: Write local.properties
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > artifacts/code-editor/android/local.properties
+
+      # ── 9. Make gradlew executable ────────────────────────────────────
+      - name: Make Gradlew executable
+        run: chmod +x artifacts/code-editor/android/gradlew
+
+      # ── 10. Cache Gradle ──────────────────────────────────────────────
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('artifacts/code-editor/android/**/*.gradle*', 'artifacts/code-editor/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-
+
+      # ── 11. Build Release APK ─────────────────────────────────────────
+      - name: Build Release APK
+        working-directory: artifacts/code-editor/android
+        run: |
+          ./gradlew assembleRelease \
+            --no-daemon \
+            --stacktrace \
+            -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=512m" \
+            -PreactNativeArchitectures=arm64-v8a
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          NODE_OPTIONS: "--max-old-space-size=4096"
+
+      # ── 12. Sign with debug keystore ──────────────────────────────────
+      - name: Sign APK
+        run: |
+          BUILD_TOOLS_VER=$(ls $ANDROID_HOME/build-tools/ | sort -V | tail -1)
+          APKSIGNER="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VER/apksigner"
+          UNSIGNED="artifacts/code-editor/android/app/build/outputs/apk/release/app-release-unsigned.apk"
+          SIGNED="artifacts/code-editor/android/app/build/outputs/apk/release/VSCodeMobile.apk"
+
+          if [ -f "$UNSIGNED" ]; then
+            $APKSIGNER sign \
+              --ks artifacts/code-editor/android/app/debug.keystore \
+              --ks-key-alias androiddebugkey \
+              --ks-pass pass:android \
+              --key-pass pass:android \
+              --out "$SIGNED" \
+              "$UNSIGNED"
+            echo "Signed APK: $SIGNED"
+          else
+            # If already signed by Gradle
+            mv artifacts/code-editor/android/app/build/outputs/apk/release/app-release.apk \
+               artifacts/code-editor/android/app/build/outputs/apk/release/VSCodeMobile.apk || true
+          fi
+
+      # ── 13. Upload APK artifact ───────────────────────────────────────
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: VSCodeMobile-APK
+          path: artifacts/code-editor/android/app/build/outputs/apk/release/VSCodeMobile.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      # ── 14. Summary ───────────────────────────────────────────────────
+      - name: Build Summary
+        if: success()
+        run: |
+          echo "## ✅ APK Build Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Download:" >> $GITHUB_STEP_SUMMARY
+          echo "**Actions → This workflow run → Artifacts → VSCodeMobile-APK**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          APK_SIZE=$(du -sh artifacts/code-editor/android/app/build/outputs/apk/release/VSCodeMobile.apk | cut -f1)
+          echo "APK Size: $APK_SIZE" >> $GITHUB_STEP_SUMMARY
