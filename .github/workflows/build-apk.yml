@@ -46,9 +46,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      # ── 6.5 Install babel-preset-expo ──────────────────────────────────
-      - name: Install babel-preset-expo
-        run: pnpm add -D -w babel-preset-expo
+      # ── 6.5 Install missing packages ──────────────────────────────────
+      - name: Install missing packages
+        run: pnpm add -D -w babel-preset-expo react-compiler-runtime babel-plugin-react-compiler
 
       # ── 7. Expo Prebuild (regenerate android/ from app.json) ──────────
       - name: Expo Prebuild
