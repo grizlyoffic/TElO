@@ -44,7 +44,7 @@ jobs:
 
       # ── 6. Install pnpm dependencies ──────────────────────────────────
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       # ── 7. Expo Prebuild (regenerate android/ from app.json) ──────────
       #    Runs every time to keep native files in sync with app.json.
